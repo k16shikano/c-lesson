@@ -43,14 +43,20 @@ int is_close_curly(char c) {
 int is_num(char c) {
   if (c >= 48 && c <= 57) {return 1;} else {return 0;}
 }
+int is_space(char c) {
+  if (c == 32) {return 1;} else {return 0;}
+}
+int ascii_to_digit(char c) {
+  return c - 48;
+}
 
 int parse_one(int prev_ch, struct Token *out_token) {
   int peek;
   int i = 0;
   enum ContRead contread = NotReading;
 
-  if (prev_ch >= 48 && prev_ch <= 57) {
-    out_token->u.number = prev_ch - 48;
+  if (is_num(prev_ch)) {
+    out_token->u.number = ascii_to_digit(prev_ch);
     out_token->ltype = NUMBER;
   } else if (is_alpha(prev_ch)) {
     out_token->ltype = EXECUTABLE_NAME;
@@ -69,8 +75,8 @@ int parse_one(int prev_ch, struct Token *out_token) {
   } else if (is_close_curly(prev_ch)) {
     out_token->ltype = CLOSE_CURLY;
     out_token->u.onechar = '}';
-  } else if (prev_ch == 32) {
-    while ((peek = cl_getc()) == 32) {}
+  } else if (is_space(prev_ch)) {
+    while (is_space(peek = cl_getc())) {}
     out_token->ltype = SPACE;
     return peek;
   }
@@ -80,10 +86,10 @@ int parse_one(int prev_ch, struct Token *out_token) {
   }
 
   while ((peek = cl_getc()) != EOF) {    
-    if (peek == 32) {
+    if (is_space(peek)) {
       return peek;
-    } else if (peek >= 48 && peek <= 57) {
-      out_token->u.number = out_token->u.number * 10 + (peek - 48);
+    } else if (is_num(peek)) {
+      out_token->u.number = out_token->u.number * 10 + ascii_to_digit(peek);
       out_token->ltype = NUMBER;
     } else if (is_alpha(peek)) {
       if (out_token->ltype != LITERAL_NAME) {
@@ -102,10 +108,10 @@ int parse_one(int prev_ch, struct Token *out_token) {
         contread = Reading;
         out_token->u.name = (char *)malloc(NAME_SIZE * sizeof(char));
       }        
-    } else if (peek == 123) {
+    } else if (is_open_curly(peek)) {
       out_token->ltype = OPEN_CURLY;
       out_token->u.onechar = '{';
-    } else if (peek == 125) {
+    } else if (is_close_curly(peek)) {
       out_token->ltype = CLOSE_CURLY;
       out_token->u.onechar = '}';
     } else {

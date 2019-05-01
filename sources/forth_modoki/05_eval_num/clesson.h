@@ -38,9 +38,10 @@ stack
 */
 struct Stack {
   int depth;
-  struct Token* head;
+  struct Token head;
   struct Stack* tail;
 };
 
-struct Stack* stack_pop(struct Stack* stack, struct Token* out_token);
-struct Stack* stack_push(struct Stack* stack, struct Token* token);
+int stack_init(struct Stack** stack);
+struct Stack* stack_pop(struct Stack** stack, struct Token* out_token);
+struct Stack* stack_push(struct Stack** stack, struct Token token);
